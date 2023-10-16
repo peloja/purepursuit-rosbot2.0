@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+
+  <!-- lanzamos el robot RosBot 2.0 -->
+  <include file="$(find rosbot_description)/launch/rosbot_gazebo.launch"></include>
+
+  <!-- lanzamos el entorno de gazebo deseado -->
+  <arg name="world" default="empty"/>
+  <arg name="paused" default="false"/>
+  <arg name="use_sim_time" default="true"/>
+  <arg name="gui" default="true"/>
+  <arg name="headless" default="false"/>
+  <arg name="debug" default="false"/>
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find rosbot_gazebo)/worlds/mundo1.world"/>  
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="headless" value="$(arg headless)"/>
+    <arg name="debug" value="$(arg debug)"/>
+  </include>
+
+   <!-- lanzamos el controlador local de trayectoria (Pure Pursuit) -->
+  <node name="pure_pursuit_node" type="pure_pursuit_node" pkg="pure_pursuit" output="screen">
+      <param name="lookahead_distance"   value="0.2"/>
+      <param name="max_linear_velocity"  value="0.2"/>
+      <param name="max_angular_velocity" value="3.0"/>
+  </node>
+
+  <!-- lanzamos el planificador global de trayectoria (Dijkstra) -->
+  <node name="dijkstra_node" type="dijkstra_node" pkg="pure_pursuit" output="screen">
+    <param name ="start_x" value ="5"/>
+    <param name ="start_y" value ="5"/>
+    <param name ="goal_x"  value ="50"/>
+    <param name ="goal_y"  value ="50"/>
+  </node>
+
+  <!-- lanzamos el generador de mapa de costes -->
+  <node name="costmap_node" type="costmap_node" pkg="pure_pursuit" output="screen" >
+    <param name ="costmap1" value ="true"/>
+    <!-- <param name ="costmap2" value ="true"/> -->
+    <!-- <param name ="costmap3" value ="true"/> -->
+  </node>
+  
+  <!--lanzamos el visualizador RVIZ con la configuracion correspondiente-->
+  <node name="rviz" pkg="rviz" type="rviz" respawn="false" args="-d $(find pure_pursuit)/launch/map1.rviz"/>
+</launch>
